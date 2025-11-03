@@ -8,10 +8,14 @@ from langchain_core.messages import (
     AIMessage,
     get_buffer_string,
 )
+from dotenv import load_dotenv
 
-from . import instructions, schemas
-from .utils import save_markdown
 
+import instructions
+import schemas
+from utils import save_markdown
+
+load_dotenv()
 
 llm = ChatOpenAI(model="gpt-4o", temperature=0)
 

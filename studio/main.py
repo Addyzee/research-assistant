@@ -2,8 +2,13 @@ from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnableConfig
 
-from . import schemas, nodes
-from .utils import check_env
+from dotenv import load_dotenv
+
+import schemas
+import nodes
+from utils import check_env
+
+load_dotenv()
 
 
 def verify_env_vars():
@@ -14,7 +19,7 @@ def verify_env_vars():
 
 def get_interview_builder():
     """Sub graph to do an interview"""
-    interview_builder = StateGraph(schemas.InterviewState)
+    interview_builder = StateGraph(state_schema=schemas.InterviewState,output_schema=schemas.InterviewOutputState)
     interview_builder.add_node("ask_question", nodes.generate_question)
     interview_builder.add_node("search_web", nodes.search_web)
     interview_builder.add_node("search_wikipedia", nodes.search_wikipedia)
@@ -38,7 +43,7 @@ def get_interview_builder():
     return interview_builder
 
 
-def build_graph():
+def build_graph(use_checkpointer: bool | None = True):
     builder = StateGraph(schemas.WholeGraphState)
     interview_builder = get_interview_builder()
 
@@ -67,8 +72,13 @@ def build_graph():
     builder.add_edge("finalize_report", END)
 
     # Compile
-    memory = MemorySaver()
-    graph = builder.compile(interrupt_before=["human_feedback"], checkpointer=memory)
+    
+    if use_checkpointer:
+        memory = MemorySaver()
+        graph = builder.compile(interrupt_before=["human_feedback"], checkpointer=memory)
+    else: 
+        graph = builder.compile(interrupt_before=["human_feedback"])
+    
     return graph
 
 
@@ -114,7 +124,7 @@ def run_rest_of_graph(graph, thread: RunnableConfig):
         print(node_name)
 
 
-graph = build_graph()
+graph = build_graph(use_checkpointer=False)
 
 
 if __name__ == "__main__":

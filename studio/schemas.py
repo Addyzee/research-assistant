@@ -32,9 +32,9 @@ class WholeGraphState(BaseModel):
     # nones are used below for (in)convenience
     max_analysts: int
     topic: str
+    max_num_of_sources: int
     human_analyst_feedback: str | None = None
     analysts: list[AnalystPersona] = []
-    max_num_of_sources: int = 3
     sections: Annotated[list, operator.add] = []
     introduction: str | None = None
     content: str | None = None 
@@ -47,9 +47,16 @@ class InterviewState(BaseModel):
     context: Annotated[list[str], operator.add] = []
     interview: str | None = None
     max_num_of_turns: int = 2
-    max_num_of_sources: int = 3
+    max_num_of_sources: int
     analyst: AnalystPersona 
     sections: list[str] = []
+
+class InterviewOutputState(BaseModel):
+    messages: Annotated[list[AnyMessage], add_messages]
+    context: Annotated[list[str], operator.add] = []
+    interview: str | None = None
+    sections: list[str] = []
+
 
 class SearchQuery(BaseModel):
     search_query: str | None = Field(None, description="Search query for retrieval.")
