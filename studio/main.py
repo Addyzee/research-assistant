@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 import schemas
 import nodes
-from utils import check_env
+from utils import check_env, Spinner
 
 load_dotenv()
 
@@ -118,10 +118,15 @@ def update_human_feedback(graph, human_feedback: str | None, thread: RunnableCon
 
 
 def run_rest_of_graph(graph, thread: RunnableConfig):
-    for event in graph.stream(None, thread, stream_mode="updates"):
-        print("--Node--")
-        node_name = next(iter(event.keys()))
-        print(node_name)
+    spinner = Spinner("Generating report")
+    spinner.start()
+    
+    try:
+        for event in graph.stream(None, thread, stream_mode="updates"):
+            node_name = next(iter(event.keys()))
+            spinner.message = f"Processing: {node_name}"
+    finally:
+        spinner.stop()
 
 
 graph = build_graph(use_checkpointer=False)
